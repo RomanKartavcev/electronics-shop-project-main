@@ -1,7 +1,9 @@
+import csv
+import os
 from os import name
 
 import pytest
-from src.item import Item
+from src.item import Item, InstantiateCSVError
 
 
 #@pytest.fixture()
@@ -44,17 +46,22 @@ def test_item_discount():
     item.apply_discount()
     assert item.price == 4500.0
 
+def test_instantiate_from_csv():
+    open("items.csv", "w").close()
+    with open("items.csv", "w") as f:
+        csv.writer(f).writerows([["name", "price", "quantity"], ["item1", "10.0"]])
 
-#def test_item_instantiation_from_csv():
-#    Item.instantiate_from_csv()
-#    assert len(Item.all) == 14
-#    assert Item.all[0].name == 'item1'
-#    assert Item.all[0].price == 100
-#    assert Item.all[0].quantity == 5
-#    assert Item.all[1].name == 'item1'
-#    assert Item.all[1].price == 90.0
-#    assert Item.all[1].quantity == 5
+    try:
+        Item.instantiate_from_csv()
+    except FileNotFoundError as e:
+        assert str(e) == "Отсутствует файл item.csv"
 
+    try:
+        Item.instantiate_from_csv()
+    except InstantiateCSVError as e:
+        assert str(e) == "Файл item.csv поврежден"
+
+    os.remove("items.csv")
 
 def test_string_to_number():
     assert Item.string_to_number('10') == 10
